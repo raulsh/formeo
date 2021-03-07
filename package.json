@@ -73,6 +73,7 @@
     ]
   },
   "scripts": {
+    "prepare": "npm run build",
     "analyze": "webpack --mode production -p --progress --config tools/webpack.config --analyze",
     "build": "npm-run-all -p build:icons build:formeo",
     "build:formeo": "cross-env NODE_ENV=production webpack --mode production -p --progress --config tools/webpack.config",
