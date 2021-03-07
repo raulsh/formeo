@@ -15,12 +15,12 @@ const processOptions = ({ editorContainer, renderContainer, ...opts }) => {
   return Object.assign({}, opts, processedOptions)
 }
 
+const newUUID = id => id.replace(UUID_REGEXP, uuid())
+
 const baseId = id => {
   const match = id.match(UUID_REGEXP)
   return (match && match[0]) || id
 }
-
-const newUUID = id => id.replace(UUID_REGEXP, uuid())
 
 const createRemoveButton = () =>
   dom.render(
@@ -75,10 +75,10 @@ export default class FormeoRenderer {
    * @param  {Object} columnData
    * @return {Object} processed column data
    */
-  processColumn = ({ id, ...columnData }) =>
+  processColumn = ({ id, ...columnData }, config) =>
     Object.assign({}, columnData, {
       id: this.prefixId(id),
-      children: this.processFields(columnData.children),
+      children: this.processFields(columnData.children, config),
       style: `width: ${columnData.config.width || '100%'}`,
     })
 
@@ -101,7 +101,7 @@ export default class FormeoRenderer {
   processRow = (data, type = 'row') => {
     const { config, id } = data
     const className = [`formeo-${type}-wrap`]
-    const rowData = Object.assign({}, data, { children: this.processColumns(data.id), id: this.prefixId(id) })
+    const rowData = Object.assign({}, data, { children: this.processColumns(data.id, config), id: this.prefixId(id) })
     this.cacheComponent(rowData)
 
     const configConditions = [
@@ -126,8 +126,9 @@ export default class FormeoRenderer {
 
   cloneComponentData = componentId => {
     const { children = [], id, ...rest } = this.components[componentId]
+
     return Object.assign({}, rest, {
-      id: newUUID(id),
+      id: rest.tag === "div" ? newUUID(id) : id,
       children: children.length && children.map(({ id }) => this.cloneComponentData(baseId(id))),
     })
   }
@@ -150,13 +151,13 @@ export default class FormeoRenderer {
       },
     })
 
-  processColumns = rowId => {
+  processColumns = (rowId, config) => {
     return this.orderChildren('columns', this.form.rows[rowId].children).map(column =>
-      this.cacheComponent(this.processColumn(column))
+      this.cacheComponent(this.processColumn(column, config))
     )
   }
 
-  processFields = fieldIds => {
+  processFields = (fieldIds, config) => {
     return this.orderChildren('fields', fieldIds).map(({ id, ...field }) =>
       this.cacheComponent(Object.assign({}, field, { id: this.prefixId(id) }))
     )
