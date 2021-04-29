@@ -128,7 +128,8 @@ export default class FormeoRenderer {
     const { children = [], id, ...rest } = this.components[componentId]
 
     return Object.assign({}, rest, {
-      id: rest.tag === "div" ? newUUID(id) : id,
+      id: newUUID(id),
+      name: rest.tag === 'div' ? newUUID(id) : id,
       children: children.length && children.map(({ id }) => this.cloneComponentData(baseId(id))),
     })
   }
